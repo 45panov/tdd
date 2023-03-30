@@ -4,7 +4,7 @@ class Money:
         self.curr = curr
 
     def __eq__(self, other):
-        if self._amount == other._amount and self.__class__ == other.__class__:
+        if self._amount == other._amount and self.curr == other.curr:
             return True
         else:
             return False
@@ -18,21 +18,24 @@ class Money:
     def currency(self):
         return self.curr
 
+    def times(self, multiplier):
+        return Money(self._amount * multiplier, self.curr)
+
 
 class Dollar(Money):
     def __init__(self, amount, curr=None):
         super().__init__(amount, curr)
 
-    def times(self, multiplier):
-        return Dollar(self._amount * multiplier)
+    # def times(self, multiplier):
+    #     return Money(self._amount * multiplier, self.curr)
 
 
 class Franc(Money):
     def __init__(self, amount, curr=None):
         super().__init__(amount, curr)
 
-    def times(self, multiplier):
-        return Franc(self._amount * multiplier)
+    # def times(self, multiplier):
+    #     return Money(self._amount * multiplier, self.curr)
 
 
 def test_multiplication():
@@ -51,8 +54,7 @@ def test_equality():
 
     assert Franc(5) == Franc(5), "Franc(5) == Franc(5) must be True!"
     assert not Franc(5) == Franc(6), "Franc(5) == Franc(6) must be False!"
-
-    assert not Franc(5) == Dollar(5), "5 Francs are not equal to 5 Dollars"
+    assert not Franc(5, 'CHF') == Dollar(5, 'USD'), "5 Francs are not equal to 5 Dollars"
 
 
 def test_franc_multiplication():
@@ -65,8 +67,11 @@ def test_currency():
     assert 'USD' == Money.dollar(1).currency(), "Money.dollar(1).currency() must be equal to 'USD'"
     assert 'CHF' == Money.franc(1).currency(), "Money.franc(1).currency() must be equal to 'CHF'"
 
+def test_different_class_equality():
+    assert Money(10, 'CHF') == Franc(10, 'CHF'), "Object Money(10, 'CHF') must be equal to Franc(10, 'CHF')"
 
 test_multiplication()
 test_equality()
 test_franc_multiplication()
 test_currency()
+test_different_class_equality()
