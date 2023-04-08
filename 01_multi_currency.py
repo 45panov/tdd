@@ -4,7 +4,7 @@ class Expression():
         addend = other
         return Sum(augend, addend)
 
-    def reduce(self, to):
+    def reduce(self, bank, to):
         return self
 
 
@@ -13,15 +13,39 @@ class Sum(Expression):
         self.augend = augend
         self.addend = addend
 
-    def reduce(self, to):
+    def reduce(self, bank, to):
         amount = self.augend._amount + self.addend._amount
         return Money(amount, to)
 
 
 class Bank:
+    def __init__(self):
+        self.rates = {}
+
     def reduce(self, source, to: str):
-        self.sum = source
-        return self.sum.reduce(to)
+        return source.reduce(self, to)
+
+    def add_rate(self, fromm, to, rate):
+        self.rates.update({Pair(fromm, to): rate})
+
+    def rate(self, fromm, to):
+        if fromm == to: return 1
+        return self.rates[Pair(fromm, to)]
+
+
+class Pair:
+    def __init__(self, fromm, to):
+        self.fromm = fromm
+        self.to = to
+
+    def __eq__(self, other):
+        return self.fromm, self.to == other.fromm, other.to
+
+    def __hash__(self):
+        return 0
+
+    def __hash__(self):
+        return 0
 
 
 class Money(Expression):
@@ -46,6 +70,10 @@ class Money(Expression):
 
     def currency(self):
         return self.curr
+
+    def reduce(self, bank, to):
+        rate = bank.rate(self.curr, to)
+        return Money(self._amount / rate, to)
 
 
 def test_multiplication():
@@ -79,8 +107,8 @@ def test_currency():
 
 
 def test_simple_addition():
-    sum = Money.dollar(5) + Money.dollar(5)
-    assert Money.dollar(10) == sum, "Money.dollar(5) + Money.dollar(5) must be an equal to Money.dollar(10)"
+    # sum = Money.dollar(5) + Money.dollar(5)
+    # assert Money.dollar(10) == sum, "Money.dollar(5) + Money.dollar(5) must be an equal to Money.dollar(10)"
 
     five = Money.dollar(5)
     sum = five + five
@@ -110,11 +138,25 @@ def test_reduce_money():
     assert Money.dollar(1) == result, "Money.dollar(1) must be equal to result"
 
 
+def test_reduce_money_different_currency():
+    bank = Bank()
+    bank.add_rate('CHF', 'USD', 2)
+    result = bank.reduce(Money.franc(2), 'USD')
+    print(type(result), result.currency(), result._amount)
+    assert Money.dollar(1) == result, "Money.dollar(1) must be equal to result!"
+
+
+def test_pairs():
+    assert Pair('USD', 'CHF') == Pair('USD', 'CHF'), "Pair('USD', 'CHF') must be equal to Pair('USD', 'CHF')"
+
+
 test_multiplication()
 test_equality()
 test_franc_multiplication()
 test_currency()
-# test_simple_addition()
+test_simple_addition()
 test_plus_returns_sum()
 test_reduce_sum()
 test_reduce_money()
+test_reduce_money_different_currency()
+test_pairs()
