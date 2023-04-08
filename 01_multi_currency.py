@@ -44,9 +44,6 @@ class Pair:
     def __hash__(self):
         return 0
 
-    def __hash__(self):
-        return 0
-
 
 class Money(Expression):
     def __init__(self, amount, curr: str):
@@ -149,6 +146,10 @@ def test_reduce_money_different_currency():
 def test_pairs():
     assert Pair('USD', 'CHF') == Pair('USD', 'CHF'), "Pair('USD', 'CHF') must be equal to Pair('USD', 'CHF')"
 
+def test_identity_rate():
+    bank = Bank()
+    assert 1 == bank.rate('USD', 'USD'), "Bank.rate('USD', 'USD') must be equal to 1!"
+
 
 test_multiplication()
 test_equality()
@@ -160,3 +161,5 @@ test_reduce_sum()
 test_reduce_money()
 test_reduce_money_different_currency()
 test_pairs()
+test_identity_rate()
+
