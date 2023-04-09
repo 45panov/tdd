@@ -20,6 +20,9 @@ class Sum(Expression):
                  self.addend.reduce(bank, to)._amount
         return Money(amount, to)
 
+    def __mul__(self, multiplier):
+        return Sum(self.augend * multiplier, self.addend * multiplier)
+
 
 class Bank:
     def __init__(self):
@@ -28,7 +31,7 @@ class Bank:
     def reduce(self, source, to: str):
         return source.reduce(self, to)
 
-    def add_rate(self, fromm, to, rate):
+    def add_rate(self, fromm, to, rate): # variable named fromm to avoid operator name from
         self.rates.update({Pair(fromm, to): rate})
 
     def rate(self, fromm, to):
@@ -163,6 +166,19 @@ def test_mixed_addition():
     result = bank.reduce(five_bucks + ten_francs, 'USD')
     assert Money.dollar(10) == result, "Money.dollar(10) must be equal to result!"
 
+def test_sum_times():
+    five_bucks = Money.dollar(5)
+    ten_francs = Money.franc(10)
+    bank = Bank()
+    bank.add_rate('CHF', 'USD', 2)
+    sum = (five_bucks + ten_francs) * 2
+    result = bank.reduce(sum, 'USD')
+    assert Money.dollar(20) == result
+
+def test_plus_same_currency_returns_money(): # Test fails.
+    sum = Money.dollar(1) + Money.dollar(1)
+    assert isinstance(sum, Money), "Variable sum must be an instance of class Money!"
+
 
 test_multiplication()
 test_equality()
@@ -176,3 +192,5 @@ test_reduce_money_different_currency()
 test_pairs()
 test_identity_rate()
 test_mixed_addition()
+test_sum_times()
+# test_plus_same_currency_returns_money() 
