@@ -1,11 +1,13 @@
 class Expression():
-    def __add__(self, other):
-        augend = self
-        addend = other
-        return Sum(augend, addend)
 
     def reduce(self, bank, to):
         return self
+
+    def __add__(self, addend):
+        return Sum(self, addend)
+
+    def __mul__(self, multiplier):
+        return Money(self._amount * multiplier, self.curr)
 
 
 class Sum(Expression):
@@ -14,7 +16,8 @@ class Sum(Expression):
         self.addend = addend
 
     def reduce(self, bank, to):
-        amount = self.augend._amount + self.addend._amount
+        amount = self.augend.reduce(bank, to)._amount + \
+                 self.addend.reduce(bank, to)._amount
         return Money(amount, to)
 
 
@@ -56,8 +59,7 @@ class Money(Expression):
         else:
             return False
 
-    def __mul__(self, multiplier):
-        return Money(self._amount * multiplier, self.curr)
+
 
     def dollar(amount):
         return Money(amount, 'USD')
@@ -71,6 +73,8 @@ class Money(Expression):
     def reduce(self, bank, to):
         rate = bank.rate(self.curr, to)
         return Money(self._amount / rate, to)
+
+
 
 
 def test_multiplication():
@@ -139,16 +143,25 @@ def test_reduce_money_different_currency():
     bank = Bank()
     bank.add_rate('CHF', 'USD', 2)
     result = bank.reduce(Money.franc(2), 'USD')
-    print(type(result), result.currency(), result._amount)
     assert Money.dollar(1) == result, "Money.dollar(1) must be equal to result!"
 
 
 def test_pairs():
     assert Pair('USD', 'CHF') == Pair('USD', 'CHF'), "Pair('USD', 'CHF') must be equal to Pair('USD', 'CHF')"
 
+
 def test_identity_rate():
     bank = Bank()
     assert 1 == bank.rate('USD', 'USD'), "Bank.rate('USD', 'USD') must be equal to 1!"
+
+
+def test_mixed_addition():
+    five_bucks = Money.dollar(5)
+    ten_francs = Money.franc(10)
+    bank = Bank()
+    bank.add_rate('CHF', 'USD', 2)
+    result = bank.reduce(five_bucks + ten_francs, 'USD')
+    assert Money.dollar(10) == result, "Money.dollar(10) must be equal to result!"
 
 
 test_multiplication()
@@ -162,4 +175,4 @@ test_reduce_money()
 test_reduce_money_different_currency()
 test_pairs()
 test_identity_rate()
-
+test_mixed_addition()
