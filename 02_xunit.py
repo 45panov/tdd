@@ -6,7 +6,7 @@ class TestCase:
             pass
     
     def tearDown(self):
-        pass:
+        pass
         
     def run(self):
         # result.testStarted()
